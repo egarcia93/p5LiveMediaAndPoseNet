@@ -28,7 +28,7 @@ var http = require('http');
 
 
 // We pass in the Express object and the options object
-var server = http.createServer(options, app);
+var server = http.createServer(app);
 
 
 let port = process.env.PORT || 3000;
@@ -46,7 +46,7 @@ let rooms = {};
 
 // WebSocket Portion
 // WebSockets work with the HTTP server
-var io = require('socket.io')().listen(httpServer);
+var io = require('socket.io')().listen(server);
 
 // Register a callback function to run when we have an individual connection
 // This is run for each individual user that connects
