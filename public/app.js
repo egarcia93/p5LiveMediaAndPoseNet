@@ -2,19 +2,25 @@
  let myVideo;
 let poseNet;
 let poses = [];
+let flag = false;
+let player;
+let panner;
+let p5l;
 
 function setup() {
     
     const myCanvas=createCanvas(640,480);
     myCanvas.parent("canvas-container");
     let constraints = {audio: false, video: true};
-  myVideo = createCapture(constraints, 
+    myVideo = createCapture(constraints, 
     function(stream) {
 	  let p5l = new p5LiveMedia(this, "CAPTURE", stream, "Shared Space")
 	  p5l.on('stream', gotStream);
       p5l.on('disconnect', gotDisconnect);
-    }
-  );  
+      P5L.ON('data',gotData);
+    });
+    
+    
   myVideo.elt.muted = true;     
   myVideo.hide();
     poseNet = ml5.poseNet(myVideo, modelReady);
@@ -30,57 +36,62 @@ function setup() {
 
 function draw() {
     tint(255,0,0,125);
+
+    translate(myVideo.width, 0);
+    scale(-1, 1);
+
     image(myVideo,0,0,width,height);
   
     for (const id in otherVideos) {
         tint(0,0,255,125);
-        image(otherVideos[id],30,0,width,height);
+        image(otherVideos[id],0,0,width,height);
     }
   
     
     drawKeypoints();
-    drawSkeleton();
+
 }		
 
+function mouseClicked(){
+    if(!flag){
 
+        panner = new Tone.Panner(1).toMaster();
+        player = new Tone.Player("data/river.wav").connect(panner);
+        // play as soon as the buffer is loaded
+        player.autostart = true;
+        player.loop = true;
+        flag = true;     
+
+    }
+   
+}
 
 function modelReady() {
     select('#status').html('Model Loaded');
     }
     function drawKeypoints()  {
-    // Loop through all the poses detected
-    for (let i = 0; i < poses.length; i++) {
-        // For each pose detected, loop through all the keypoints
-        let pose = poses[i].pose;
-        for (let j = 0; j < pose.keypoints.length; j++) {
-        // A keypoint is an object describing a body part (like rightArm or leftShoulder)
-        let keypoint = pose.keypoints[j];
-        // Only draw an ellipse is the pose probability is bigger than 0.2
-        if (keypoint.score > 0.2) {
-            fill(255, 0, 0);
-            noStroke();
-            ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
-        }
-        }
-    }
-    }
+        // Loop through all the poses detected
+        for(let i = 0; i < poses.length; i++){
+            let nose = poses[i].pose.nose;
     
-    // A function to draw the skeletons
-    function drawSkeleton() {
-    // Loop through all the skeletons detected
-    for (let i = 0; i < poses.length; i++) {
-        let skeleton = poses[i].skeleton;
-        // For every skeleton, loop through all body connections
-        for (let j = 0; j < skeleton.length; j++) {
-        let partA = skeleton[j][0];
-        let partB = skeleton[j][1];
-        stroke(255, 0, 0);
-        line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
-        }
-    }
-    }
+           
+            if(nose.confidence > 0.5){
+                ellipse(nose.x,nose.y,10,10);
+                let dataToSend = {x: nose.x, y: nose.y};
+      
+                // Send it
+                p5l.send(JSON.stringify(dataToSend));
+                if(flag){
+                   panner.set({pan: map(nose.x,0,width,1,-1)}); 
+                   player.set({playbackRate: (nose.y/width)*2});
     
-
+                }
+            }
+        }
+        
+    
+        }
+        
  
 // We got a new stream!
 function gotStream(stream, id) {
@@ -95,3 +106,13 @@ function gotStream(stream, id) {
 function gotDisconnect(id) {
  delete otherVideos[id]; 
 }
+
+function gotData(data, id) {
+    console.log(id + ":" + data);
+    
+    // If it is JSON, parse it
+    let d = JSON.parse(data);
+    otherX = d.x;
+    otherY = d.y;
+    ellipse(otherX,otherY,10,10);
+  }
