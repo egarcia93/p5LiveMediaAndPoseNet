@@ -148,6 +148,9 @@ class p5LiveMedia {
                 }
             }
         });
+
+      
+
             
         this.socket.on('signal', (to, from, data) => {
 
@@ -212,6 +215,8 @@ class p5LiveMedia {
             this.onData(callback);
         } else if (event == "disconnect") {
             this.onDisconnect(callback);
+        }else if(event=='position'){
+            this.onPosition(callback);
         }
     }
 
@@ -226,6 +231,7 @@ class p5LiveMedia {
     onData(callback) {
         this.onDataCallback = callback;
     }
+  
 
     callOnDisconnectCallback(id) {
         if (this.onDisconnectCallback) {
