@@ -17,7 +17,7 @@ function setup() {
 	  let p5l = new p5LiveMedia(this, "CAPTURE", stream, "Shared Space")
 	  p5l.on('stream', gotStream);
       p5l.on('disconnect', gotDisconnect);
-      P5L.ON('data',gotData);
+      p5l.on('data',gotData);
     });
     
     
