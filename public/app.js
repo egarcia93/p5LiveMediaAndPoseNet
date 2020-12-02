@@ -81,7 +81,7 @@ function mouseClicked(){
 
         panner = new Tone.Panner(1).toMaster();
         player = new Tone.Player("data/river.wav").connect(panner);
-        
+
         panner2 = new Tone.Panner(1).toMaster();
         player2 = new Tone.Player("data/wind.wav").connect(panner2);
         // play as soon as the buffer is loaded
@@ -153,7 +153,7 @@ function gotData(data, id) {
     otherX = d.x;
     otherY = d.y;
     ellipse(otherX,otherY,10,10);
-    panner2.set({pan: map(otherX,0,width,1,-1)}); 
+    panner2.set({pan: map(width-otherX,0,width,1,-1)}); 
     player2.set({playbackRate: (otherY/width)*2});
   }
   
