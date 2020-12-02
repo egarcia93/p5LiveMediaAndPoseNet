@@ -5,6 +5,8 @@ let poses = [];
 let flag = false;
 let player;
 let panner;
+let player2;
+let panner2;
 let p5l;
 
 
@@ -41,7 +43,18 @@ function setup() {
 }
 
 function draw() {
-    tint(255,0,0,125);
+
+    if(!flag){
+        fill(0);
+        rect(0,0,width,height);
+        fill(255);
+        textSize(50);
+        textAlign(CENTER, CENTER);
+        text('Click to start', width/2, height/2);
+
+    }else{
+        push();
+        tint(255,0,0,125);
     
         translate(myVideo.width, 0);
         scale(-1, 1);
@@ -52,9 +65,14 @@ function draw() {
         tint(0,0,255,125);
         image(otherVideos[id],0,0,width,height);
     }
-  
+    pop();
     
     drawKeypoints();
+ 
+    }
+
+    
+ 
    
 }		
 
@@ -63,9 +81,14 @@ function mouseClicked(){
 
         panner = new Tone.Panner(1).toMaster();
         player = new Tone.Player("data/river.wav").connect(panner);
+        
+        panner2 = new Tone.Panner(1).toMaster();
+        player2 = new Tone.Player("data/wind.wav").connect(panner2);
         // play as soon as the buffer is loaded
         player.autostart = true;
         player.loop = true;
+        player2.autostart = true;
+        player2.loop = true;
         flag = true;     
 
     }
@@ -83,7 +106,12 @@ function modelReady() {
 
        
         if(nose.confidence > 0.5){
-            ellipse(nose.x,nose.y,10,10);
+            
+           
+            fill(255);
+            textSize(20);
+            text('Move your nose around', width-nose.x, nose.y);
+            
             let dataToSend = {x: nose.x, y: nose.y};
   
             // Send it
@@ -125,5 +153,7 @@ function gotData(data, id) {
     otherX = d.x;
     otherY = d.y;
     ellipse(otherX,otherY,10,10);
+    panner2.set({pan: map(otherX,0,width,1,-1)}); 
+    player2.set({playbackRate: (otherY/width)*2});
   }
   
